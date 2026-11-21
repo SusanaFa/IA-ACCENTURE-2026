@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-def build_request(question):
+def build_request(question, model="gemini-3.1-flash-lite"):
     # Valida la entrada antes de preparar o enviar una petición.
     if not isinstance(question, str):
         raise ValueError("La pregunta debe ser un texto.")
@@ -20,7 +20,6 @@ def build_request(question):
     if not api_key or not api_key.strip():
         raise ValueError("Falta configurar GEMINI_API_KEY en el archivo .env.")
 
-    model = "gemini-3.5-flash-lite"
     url = (
         "https://generativelanguage.googleapis.com/"
         f"v1beta/models/{model}:generateContent"
