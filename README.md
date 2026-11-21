@@ -58,10 +58,35 @@ de entorno y quedarán excluidas del control de versiones.
 
 ## Estado actual
 
-Repositorio en preparación.
+Unidad U1.3: cliente de Gemini implementado en `src/gemini_client.py`.
 
-Esta versión contiene la documentación inicial. La lectura de reportes,
-las validaciones y la integración con IA todavía no están implementadas.
+El módulo separa la preparación de la petición, el envío y la extracción
+del texto. Valida la entrada y la configuración de la clave, y gestiona
+errores de conexión, tiempo de espera, estado HTTP, JSON inválido y
+datos faltantes.
+
+Verificación realizada:
+
+- Clave inválida, pregunta vacía y respuesta real exitosa.
+- Simulación de errores de conexión, JSON inválido y datos faltantes.
+
+Las evidencias están en `docs/evidencias/`.
+
+La conciliación de reportes de Examia sigue pendiente de implementación.
+
+## Instalación y ejecución
+
+Desde Git Bash, en la raíz del repositorio:
+
+1. Crear el entorno: `py -m venv venv`
+2. Activarlo: `source venv/Scripts/activate`
+3. Instalar dependencias: `python -m pip install -r requirements.txt`
+4. Copiar la configuración: `cp .env.example .env`
+5. Completar `GEMINI_API_KEY` en `.env` con una clave propia.
+6. Ejecutar: `python src/gemini_client.py`
+
+Proveedor utilizado: Google Gemini.
+Modelo probado: `gemini-3.5-flash-lite`.
 
 ## Tecnologías previstas
 
