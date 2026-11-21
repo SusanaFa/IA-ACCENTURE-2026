@@ -1,4 +1,6 @@
+import json
 import os
+import re
 
 import requests
 from dotenv import load_dotenv
@@ -6,14 +8,35 @@ from dotenv import load_dotenv
 # Carga la configuración local sin incluir credenciales en el código.
 load_dotenv()
 
-
-def build_request(question, model="gemini-3.1-flash-lite"):
-    # Valida la entrada antes de preparar o enviar una petición.
+def build_request(
+    question,
+    model="gemini-3.1-flash-lite",
+    *,
+    system_instruction=None,
+    response_schema=None,
+):
+    # Valida la pregunta antes de preparar la petición.
     if not isinstance(question, str):
         raise ValueError("La pregunta debe ser un texto.")
 
     if not question.strip():
         raise ValueError("La pregunta no puede estar vacía.")
+
+    # La instrucción es opcional para conservar las llamadas anteriores.
+    if system_instruction is not None:
+        if (
+            not isinstance(system_instruction, str)
+            or not system_instruction.strip()
+        ):
+            raise ValueError(
+                "La instrucción de sistema debe ser un texto no vacío."
+            )
+
+    if response_schema is not None:
+        if not isinstance(response_schema, dict) or not response_schema:
+            raise ValueError(
+                "El esquema de respuesta debe ser un diccionario no vacío."
+            )
 
     api_key = os.getenv("GEMINI_API_KEY")
 
@@ -25,14 +48,31 @@ def build_request(question, model="gemini-3.1-flash-lite"):
         f"v1beta/models/{model}:generateContent"
     )
     headers = {"x-goog-api-key": api_key}
+
+    # El contenido cambia en cada petición.
     payload = {
         "contents": [
-            {"parts": [{"text": question}]}
+            {
+                "role": "user",
+                "parts": [{"text": question}],
+            }
         ]
     }
 
-    return url, headers, payload
+    # Las instrucciones de comportamiento viajan por separado.
+    if system_instruction is not None:
+        payload["systemInstruction"] = {
+            "parts": [{"text": system_instruction}]
+        }
 
+    # Activa la salida estructurada cuando se proporciona un esquema.
+    if response_schema is not None:
+        payload["generationConfig"] = {
+            "responseMimeType": "application/json",
+            "responseSchema": response_schema,
+        }
+
+    return url, headers, payload
 
 def send_request(url, headers, payload):
     # Controla los errores que pueden ocurrir al contactar al servicio.
@@ -108,6 +148,57 @@ def extract_text(data):
 
     return text
 
+def parse_json_response(text, expected_types):
+    # Comprueba que exista texto para interpretar.
+    if not isinstance(text, str) or not text.strip():
+        raise ValueError("La respuesta del modelo está vacía o no es texto.")
+
+    clean_text = text.strip()
+
+    # Retira un bloque Markdown únicamente si envuelve toda la respuesta.
+    fenced_block = re.fullmatch(
+        r"```(?:json)?\s*(.*?)\s*```",
+        clean_text,
+        flags=re.DOTALL | re.IGNORECASE,
+    )
+
+    if fenced_block:
+        clean_text = fenced_block.group(1).strip()
+
+    try:
+        data = json.loads(clean_text)
+    except json.JSONDecodeError:
+        raise ValueError(
+            "La respuesta del modelo no contiene JSON válido."
+        ) from None
+
+    # Un JSON válido también podría ser una lista, un número o null.
+    if not isinstance(data, dict):
+        raise ValueError("La respuesta debe ser un objeto JSON.")
+
+    missing_keys = set(expected_types) - set(data)
+
+    if missing_keys:
+        raise ValueError(
+            f"Faltan claves requeridas: {', '.join(sorted(missing_keys))}."
+        )
+
+    extra_keys = set(data) - set(expected_types)
+
+    if extra_keys:
+        raise ValueError(
+            f"Hay claves no permitidas: {', '.join(sorted(extra_keys))}."
+        )
+
+    # Valida el tipo exacto de cada campo del contrato.
+    for key, expected_type in expected_types.items():
+        if type(data[key]) is not expected_type:
+            raise ValueError(
+                f"El campo '{key}' debe ser de tipo "
+                f"{expected_type.__name__}."
+            )
+
+    return data
 
 
 def calculate_cost(data, input_price_per_token, output_price_per_token):

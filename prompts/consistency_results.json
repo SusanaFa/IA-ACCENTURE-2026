@@ -1,0 +1,107 @@
+{
+  "started_at": "2026-11-21T21:37:33.701267+00:00",
+  "model": "gemini-3.1-flash-lite",
+  "repetitions_per_prompt": 3,
+  "validation_scope": "JSON object, exact keys and field types",
+  "prompts": {
+    "monthly_assignment": {
+      "successes": 3,
+      "failures": 0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "valid": true,
+          "raw_text": "{\n  \"summary\": \"El examen EX-001 ingresó el 31 de octubre y fue firmado el 2 de noviembre. Dado que la firma es un requisito indispensable para el cobro y pago, y no se ha confirmado el criterio de imputación mensual (si corresponde al mes de ingreso o al de firma), el proceso queda pendiente de resolución.\",\n  \"requires_review\": true\n}",
+          "parsed_data": {
+            "summary": "El examen EX-001 ingresó el 31 de octubre y fue firmado el 2 de noviembre. Dado que la firma es un requisito indispensable para el cobro y pago, y no se ha confirmado el criterio de imputación mensual (si corresponde al mes de ingreso o al de firma), el proceso queda pendiente de resolución.",
+            "requires_review": true
+          }
+        },
+        {
+          "attempt": 2,
+          "valid": true,
+          "raw_text": "{\"summary\": \"El examen EX-001 fue recibido el 31 de octubre y firmado el 2 de noviembre. Debido a que el criterio de imputación mensual no ha sido confirmado, no es posible asignar el mes de registro correspondiente para este proceso.\", \"requires_review\": true}",
+          "parsed_data": {
+            "summary": "El examen EX-001 fue recibido el 31 de octubre y firmado el 2 de noviembre. Debido a que el criterio de imputación mensual no ha sido confirmado, no es posible asignar el mes de registro correspondiente para este proceso.",
+            "requires_review": true
+          }
+        },
+        {
+          "attempt": 3,
+          "valid": true,
+          "raw_text": "{\n  \"summary\": \"El examen EX-001 ingresó el 31 de octubre y cuenta con firma del 2 de noviembre. Debido a que la firma es un requisito indispensable para el cobro y pago, y no está definido el criterio de imputación mensual, no es posible asignar un mes específico para su registro contable.\",\n  \"requires_review\": true\n}",
+          "parsed_data": {
+            "summary": "El examen EX-001 ingresó el 31 de octubre y cuenta con firma del 2 de noviembre. Debido a que la firma es un requisito indispensable para el cobro y pago, y no está definido el criterio de imputación mensual, no es posible asignar un mes específico para su registro contable.",
+            "requires_review": true
+          }
+        }
+      ]
+    },
+    "status_change_review": {
+      "successes": 3,
+      "failures": 0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "valid": true,
+          "raw_text": "{\n  \"summary\": \"El examen EX-002 cambió su estado de pendiente de firma en octubre a firmado en noviembre. No se ha confirmado la ejecución de los procesos de cobro o pago asociados a este registro.\",\n  \"requires_review\": true\n}",
+          "parsed_data": {
+            "summary": "El examen EX-002 cambió su estado de pendiente de firma en octubre a firmado en noviembre. No se ha confirmado la ejecución de los procesos de cobro o pago asociados a este registro.",
+            "requires_review": true
+          }
+        },
+        {
+          "attempt": 2,
+          "valid": true,
+          "raw_text": "{\n  \"summary\": \"El examen EX-002 presentó un cambio de estado, pasando de pendiente de firma en octubre a firmado en noviembre. Debido a que no se ha verificado el estado de los cobros o pagos asociados a este registro, es necesario realizar una revisión adicional para asegurar la correcta conciliación financiera.\",\n  \"requires_review\": true\n}",
+          "parsed_data": {
+            "summary": "El examen EX-002 presentó un cambio de estado, pasando de pendiente de firma en octubre a firmado en noviembre. Debido a que no se ha verificado el estado de los cobros o pagos asociados a este registro, es necesario realizar una revisión adicional para asegurar la correcta conciliación financiera.",
+            "requires_review": true
+          }
+        },
+        {
+          "attempt": 3,
+          "valid": true,
+          "raw_text": "{\"summary\": \"El examen EX-002 presenta un cambio de estado, pasando de pendiente de firma en octubre a firmado en noviembre. No se ha confirmado el estado de los cobros o pagos asociados a este examen.\", \"requires_review\": true}",
+          "parsed_data": {
+            "summary": "El examen EX-002 presenta un cambio de estado, pasando de pendiente de firma en octubre a firmado en noviembre. No se ha confirmado el estado de los cobros o pagos asociados a este examen.",
+            "requires_review": true
+          }
+        }
+      ]
+    },
+    "rejected_exam_review": {
+      "successes": 3,
+      "failures": 0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "valid": true,
+          "raw_text": "{\"summary\": \"Se identificaron 2 exámenes con estado rechazado en el sistema. Debido a que no se ha informado sobre su estado de firma y el procedimiento para su conciliación aún no se encuentra definido, estos casos requieren un análisis adicional para determinar su tratamiento.\", \"requires_review\": true}",
+          "parsed_data": {
+            "summary": "Se identificaron 2 exámenes con estado rechazado en el sistema. Debido a que no se ha informado sobre su estado de firma y el procedimiento para su conciliación aún no se encuentra definido, estos casos requieren un análisis adicional para determinar su tratamiento.",
+            "requires_review": true
+          }
+        },
+        {
+          "attempt": 2,
+          "valid": true,
+          "raw_text": "{\n  \"summary\": \"Se identificaron 2 exámenes con estado rechazado. No se dispone de información sobre su firma y el procedimiento para su conciliación aún no ha sido definido.\",\n  \"requires_review\": true\n}",
+          "parsed_data": {
+            "summary": "Se identificaron 2 exámenes con estado rechazado. No se dispone de información sobre su firma y el procedimiento para su conciliación aún no ha sido definido.",
+            "requires_review": true
+          }
+        },
+        {
+          "attempt": 3,
+          "valid": true,
+          "raw_text": "{\"summary\": \"Se identificaron 2 exámenes con estado rechazado. No se cuenta con información sobre su firma y el tratamiento específico para su conciliación no ha sido definido.\", \"requires_review\": true}",
+          "parsed_data": {
+            "summary": "Se identificaron 2 exámenes con estado rechazado. No se cuenta con información sobre su firma y el tratamiento específico para su conciliación no ha sido definido.",
+            "requires_review": true
+          }
+        }
+      ]
+    }
+  }
+}
