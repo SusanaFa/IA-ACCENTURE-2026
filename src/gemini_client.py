@@ -110,6 +110,26 @@ def extract_text(data):
     return text
 
 
+
+def calculate_cost(data, input_price_per_token, output_price_per_token):
+    # Lee el consumo informado en la respuesta.
+    try:
+        usage = data["usageMetadata"]
+        input_tokens = usage["promptTokenCount"]
+        output_tokens = usage["candidatesTokenCount"]
+    except KeyError as error:
+        raise RuntimeError(
+            f"Falta un dato para calcular el costo: {error.args[0]}."
+        ) from None
+
+    # Calcula por separado el costo de entrada y de salida.
+    input_cost = input_tokens * input_price_per_token
+    output_cost = output_tokens * output_price_per_token
+
+    return input_cost + output_cost
+
+
+
 def generate_text(question):
     # Coordina el proceso y entrega el resultado.
     url, headers, payload = build_request(question)
