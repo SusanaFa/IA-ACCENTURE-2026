@@ -251,15 +251,25 @@ No se incluyen reportes reales ni datos personales de pacientes.
 `.gitignore` excluye `.env`, los entornos virtuales y los archivos
 temporales de Python. `.env.example` contiene únicamente valores de ejemplo.
 
-## Verificación pendiente para Gate 1
+## Registro del ensayo de instalación limpia
 
-Antes de entregar falta realizar y registrar el ensayo completo:
+- Fecha: 2026-11-24.
+- Entorno: Windows, Git Bash y Python 3.14.7.
+- Copia independiente: `gate1-clean-check`.
+- Dependencias instaladas mediante `python -m pip install -r requirements.txt`.
+- Verificación: `python -m pip check` no detectó conflictos.
+- Ejecución: el cliente recibió una respuesta real de Gemini:
+  “Instalación limpia de Examia verificada”.
+- Seguridad: `.env` y `venv/` están ignorados; `.env` no está versionado.
+- La copia de prueba quedó sin cambios pendientes en Git.
 
-1. Clonar el repositorio actualizado en una carpeta nueva.
-2. Crear un entorno virtual nuevo.
-3. Instalar únicamente las dependencias declaradas.
-4. Configurar una clave propia mediante `.env`.
-5. Ejecutar siguiendo este README y obtener una respuesta real.
-6. Confirmar que las credenciales y el entorno virtual no estén versionados.
+Se observó un HTTP 400 en el primer intento debido a que no se encontraba la API_KEY correcta. Las ejecuciones posteriores
+fueron exitosas.
 
-El resultado del ensayo se documentará después de ejecutarlo.
+Evidencias:
+
+- [Ejecución y seguridad](docs/evidencias/gate1-clean-install.png)
+- [Python y dependencias](docs/evidencias/gate1-dependencies-check.png)
+
+El ensayo se realizó en una carpeta y un entorno virtual nuevos del mismo
+computador; no equivale a una prueba en otro equipo.
