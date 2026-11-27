@@ -4,6 +4,7 @@ import re
 
 import requests
 from dotenv import load_dotenv
+from src.retry_client import with_retry
 
 # Carga la configuración local sin incluir credenciales en el código.
 load_dotenv()
@@ -75,7 +76,7 @@ def build_request(
     return url, headers, payload
 
 def send_request(url, headers, payload):
-    # Controla los errores que pueden ocurrir al contactar al servicio.
+    # Controla problemas de conexión y de tiempo de espera.
     try:
         response = requests.post(
             url,
@@ -92,21 +93,30 @@ def send_request(url, headers, payload):
             "No se pudo conectar con Gemini. Revisa tu conexión."
         ) from None
 
-    # Distingue un rechazo HTTP de un problema de conexión.
+    # Clasifica los errores HTTP para decidir cuáles se reintentan.
     try:
         response.raise_for_status()
     except requests.exceptions.HTTPError:
         status_code = response.status_code
 
         if status_code in (401, 403):
-            message = "Gemini rechazó el acceso. Revisa la clave y sus permisos."
-        elif status_code == 400:
+            # Esperar y repetir no corrige un problema de acceso.
+            raise ValueError(
+                "Credencial inválida o sin permiso. "
+                "Revisa tu GEMINI_API_KEY y sus permisos."
+            ) from None
+
+        if status_code == 429:
+            # Convención de esta lección: representa el límite de uso.
+            raise TimeoutError(
+                "Se alcanzó un límite de uso o cuota de Gemini."
+            ) from None
+
+        if status_code == 400:
             message = (
                 "Gemini rechazó la petición (HTTP 400). "
                 "Revisa la clave y el contenido enviado."
             )
-        elif status_code == 429:
-            message = "Se alcanzó un límite de uso o cuota de Gemini."
         elif status_code >= 500:
             message = (
                 f"Gemini no pudo atender la petición (HTTP {status_code}). "
@@ -124,7 +134,6 @@ def send_request(url, headers, payload):
         raise RuntimeError(
             "La respuesta de Gemini no contiene JSON válido."
         ) from None
-
 
 def extract_text(data):
     # Recorre la estructura esperada de la respuesta.
@@ -219,16 +228,27 @@ def calculate_cost(data, input_price_per_token, output_price_per_token):
     return input_cost + output_cost
 
 
-
 def generate_text(question):
-    # Coordina el proceso y entrega el resultado.
+    # Prepara la petición una sola vez.
     url, headers, payload = build_request(question)
-    data = send_request(url, headers, payload)
+
+    try:
+        # La lambda permite repetir el envío con los mismos argumentos.
+        data = with_retry(
+            lambda: send_request(url, headers, payload)
+        )
+    except TimeoutError:
+        # Traduce el agotamiento de intentos a un error del cliente.
+        raise RuntimeError(
+            "Se alcanzó un límite de uso o cuota de Gemini "
+            "y se agotaron los tres intentos. Intenta más tarde."
+        ) from None
+
+    # Extrae el texto únicamente cuando el envío fue exitoso.
     return extract_text(data)
 
-
 if __name__ == "__main__":
-    # La consola presenta los errores controlados al usuario.
+    # Solicita una pregunta cuando se ejecuta este módulo.
     question = input("Escribe tu pregunta: ")
 
     try:
