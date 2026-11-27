@@ -1,0 +1,107 @@
+{
+  "started_at": "2026-11-26T23:25:36.445987-03:00",
+  "model": "gemini-3.1-flash-lite",
+  "metric": "reference_word_overlap",
+  "results": [
+    {
+      "name": "signature_requirement",
+      "question": "Regla del prototipo: la firma del examen es requisito para cobrar al centro y pagar al médico; no es necesario esperar su liberación. ¿Qué requisito permite el cobro y el pago?",
+      "reference": "La firma es requisito para el cobro y el pago.",
+      "status": "success",
+      "response": "El cobro y el pago son posibles gracias a la firma del examen.",
+      "reference_tokens": [
+        "la",
+        "firma",
+        "es",
+        "requisito",
+        "para",
+        "el",
+        "cobro",
+        "y",
+        "el",
+        "pago"
+      ],
+      "response_tokens": [
+        "el",
+        "cobro",
+        "y",
+        "el",
+        "pago",
+        "son",
+        "posibles",
+        "gracias",
+        "a",
+        "la",
+        "firma",
+        "del",
+        "examen"
+      ],
+      "raw_score": 0.4444444444444444,
+      "processed_score": 0.6666666666666666
+    },
+    {
+      "name": "monthly_assignment",
+      "question": "En el prototipo aún no se ha confirmado qué fecha determina la imputación mensual de un examen. ¿Cuál es el estado de esa regla?",
+      "reference": "La fecha de imputación mensual está pendiente de confirmación.",
+      "status": "success",
+      "response": "Esa regla permanece actualmente en proceso de definición.",
+      "reference_tokens": [
+        "la",
+        "fecha",
+        "de",
+        "imputación",
+        "mensual",
+        "está",
+        "pendiente",
+        "de",
+        "confirmación"
+      ],
+      "response_tokens": [
+        "esa",
+        "regla",
+        "permanece",
+        "actualmente",
+        "en",
+        "proceso",
+        "de",
+        "definición"
+      ],
+      "raw_score": 0.125,
+      "processed_score": 0.125
+    },
+    {
+      "name": "rejected_exam",
+      "question": "En el prototipo aún no se ha definido el tratamiento financiero de los exámenes rechazados. ¿Cuál es el estado de esa regla?",
+      "reference": "El tratamiento financiero de los exámenes rechazados está pendiente de definición.",
+      "status": "success",
+      "response": "Esa regla permanece pendiente de definición en el prototipo actual.",
+      "reference_tokens": [
+        "el",
+        "tratamiento",
+        "financiero",
+        "de",
+        "los",
+        "exámenes",
+        "rechazados",
+        "está",
+        "pendiente",
+        "de",
+        "definición"
+      ],
+      "response_tokens": [
+        "esa",
+        "regla",
+        "permanece",
+        "pendiente",
+        "de",
+        "definición",
+        "en",
+        "el",
+        "prototipo",
+        "actual"
+      ],
+      "raw_score": 0.2,
+      "processed_score": 0.4
+    }
+  ]
+}

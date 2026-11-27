@@ -359,3 +359,38 @@ En esta versión, HTTP 429 y HTTP 500+ producen TimeoutError
 como convención interna para activar el reintento.
 
 Estas pruebas no demuestran recuperación ante un HTTP 429 real.
+
+## Pipeline de procesamiento de texto — Bloque 15
+
+Funciones disponibles en `src/text_pipeline.py`:
+`clean_text`, `tokenize`, `process_text` y `reference_word_overlap`.
+
+La métrica calcula la proporción de palabras únicas de la referencia
+presentes en la respuesta. Ambos textos se procesan antes de compararlos.
+
+### Ensayo con respuestas reales
+
+Se obtuvieron tres respuestas reales de Gemini sobre reglas del prototipo,
+sin datos de pacientes.
+
+| Caso                | Coincidencia cruda | Coincidencia procesada |
+| ------------------- | -----------------: | ---------------------: |
+| Firma requerida     |             44,4 % |                 66,7 % |
+| Imputación mensual  |             12,5 % |                 12,5 % |
+| Exámenes rechazados |             20,0 % |                 40,0 % |
+
+La normalización modificó la puntuación en dos casos.
+El caso de imputación mensual mostró una coincidencia baja pese a expresar
+una idea cercana, aunque menos precisa que la referencia.
+
+La métrica ignora el orden, las repeticiones y el significado;
+no sustituye la revisión del contenido.
+
+Evidencia con preguntas, referencias, respuestas, tokens y puntuaciones:
+[Resultados del ensayo](docs/evidencias/pipeline_results_20261126_232536_445987.json).
+
+Ejecutar el ensayo: `python -m src.pipeline_trial`.
+Realiza consultas reales y puede generar cargos.
+
+Pruebas del pipeline: `python -m pytest tests/test_text_pipeline.py -v`.
+Resultado observado: 10 passed in 0.07s.
