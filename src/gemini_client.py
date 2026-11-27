@@ -8,6 +8,8 @@ from src.retry_client import with_retry
 
 # Carga la configuración local sin incluir credenciales en el código.
 load_dotenv()
+# Acumulado estimado de esta sesión; se reinicia al iniciar el proceso.
+session_cost_usd = 0.0
 
 def build_request(
     question,
@@ -227,25 +229,63 @@ def calculate_cost(data, input_price_per_token, output_price_per_token):
 
     return input_cost + output_cost
 
+def register_cost(
+    data,
+    input_price_per_token,
+    output_price_per_token,
+):
+    """Registra una estimación usando tokens de entrada y salida."""
+    global session_cost_usd
 
-def generate_text(question):
-    # Prepara la petición una sola vez.
+    # Calcula antes de acumular: si faltan datos, no registra un cero falso.
+    operation_cost = calculate_cost(
+        data,
+        input_price_per_token,
+        output_price_per_token,
+    )
+    session_cost_usd += operation_cost
+
+    print(
+        f"Costo estimado de entrada y salida: USD {operation_cost:.6f} "
+        f"(acumulado: USD {session_cost_usd:.6f})"
+    )
+
+    return operation_cost
+
+
+def generate_text(
+    question,
+    *,
+    input_price_per_token=None,
+    output_price_per_token=None,
+):
+    # Si se registra costo, deben proporcionarse ambas tarifas.
+    if (input_price_per_token is None) != (output_price_per_token is None):
+        raise ValueError("Debes proporcionar ambas tarifas por token.")
+
     url, headers, payload = build_request(question)
 
     try:
-        # La lambda permite repetir el envío con los mismos argumentos.
+        # Solo se repite el envío; el registro queda fuera del reintento.
         data = with_retry(
             lambda: send_request(url, headers, payload)
         )
     except TimeoutError:
-        # Traduce el agotamiento de intentos a un error del cliente.
         raise RuntimeError(
             "Se alcanzó un límite de uso o cuota de Gemini "
             "y se agotaron los tres intentos. Intenta más tarde."
         ) from None
 
-    # Extrae el texto únicamente cuando el envío fue exitoso.
+    # Registra el consumo informado aunque luego falle la extracción.
+    if input_price_per_token is not None:
+        register_cost(
+            data,
+            input_price_per_token,
+            output_price_per_token,
+        )
+
     return extract_text(data)
+
 
 if __name__ == "__main__":
     # Solicita una pregunta cuando se ejecuta este módulo.

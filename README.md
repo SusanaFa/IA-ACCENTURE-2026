@@ -273,3 +273,23 @@ Evidencias:
 
 El ensayo se realizó en una carpeta y un entorno virtual nuevos del mismo
 computador; no equivale a una prueba en otro equipo.
+
+## Ensayo de consultas consecutivas — M2
+
+- Modelo: gemini-3.1-flash-lite.
+- Nivel del proyecto: Tier 1.
+- Límite mostrado: 4.000 solicitudes por minuto.
+- Consultas iniciadas: 10.
+- Consultas exitosas: 10.
+- Duración: 16,16 segundos.
+- Costo estimado de entrada y salida: USD 0,000043.
+- Reintentos observados: ninguno.
+- HTTP 429: no observado durante este ensayo.
+
+Las consultas reales y el registro de costos funcionaron.
+El backoff, el agotamiento de intentos y la ausencia de
+registros de costo ante fallos se comprobaron mediante simulaciones.
+
+Este ensayo no demuestra recuperación ante un HTTP 429 real.
+El costo informado es una estimación parcial, no un cargo
+confirmado en la facturación del proveedor.
