@@ -21,20 +21,26 @@ Desarrollar una herramienta en Python que apoye la conciliación mensual
 de exámenes y utilice IA generativa para explicar los resultados y preparar
 resúmenes para revisión humana.
 
-## Alcance actual — Gate 1
+## Alcance actual — Gate 1 y avances M2
 
-Esta versión implementa la base técnica de integración con Gemini:
+Esta versión implementa la base técnica de integración con Gemini y los avances del cliente modular de M2:
 
-- Cliente de la API REST con funciones separadas.
+- Cliente de la API REST con funciones separadas y `generate_text` como interfaz de consulta de texto.
 - Validación de entradas y configuración.
 - Manejo de errores de conexión, tiempo de espera, HTTP y formato JSON.
+- Clasificación de errores de acceso sin reintentos y de errores HTTP 429 y 500+ con reintentos.
+- Espera exponencial con jitter, límite de espera y máximo de intentos.
+- Mensaje de error claro al agotarse los intentos.
 - Extracción del texto generado.
-- Instrucciones de sistema separadas del contenido del usuario.
+- Instrucciones de sistema separadas del contenido del usuario mediante `build_request`.
 - Solicitud de salida JSON mediante un esquema.
 - Interpretación y validación de claves y tipos de la respuesta generada.
 - Banco de tres prompts con ejemplos ficticios de Examia.
 - Script de consistencia y registro de sus resultados.
-- Función de estimación de costo por tokens, probada por separado.
+- Estimación parcial del costo por tokens de entrada y salida, con registro opcional y acumulado por sesión.
+- Registro único de costo después del envío exitoso, fuera del mecanismo de reintento.
+- Ensayo de diez consultas reales consecutivas, sin observar un HTTP 429.
+- Suite de 17 pruebas automatizadas con mocks, sin llamadas reales a la API ni pausas reales.
 - Comparación de modelos y decisión de arquitectura documentada.
 
 La lectura de reportes, la conciliación automática y el cálculo de cobros
@@ -125,7 +131,7 @@ GEMINI_API_KEY=YOUR_API_KEY
 Desde la raíz del repositorio, con el entorno virtual activo:
 
 ```bash
-python src/gemini_client.py
+python -m src.gemini_client
 ```
 
 El programa solicita una pregunta. Para comprobar la conexión se puede escribir:
@@ -203,28 +209,56 @@ están en la [decisión de arquitectura](docs/architecture_decision.md).
 `calculate_cost` utiliza `promptTokenCount` y `candidatesTokenCount`
 de `usageMetadata`, junto con precios por token proporcionados como parámetros.
 
-Actualmente se prueba por separado y no se ejecuta dentro de `generate_text`.
+`register_cost` reutiliza ese cálculo y acumula la estimación en
+`session_cost_usd`. El acumulado se reinicia al iniciar un nuevo proceso.
+
+`generate_text` registra el costo cuando recibe las dos tarifas:
+`input_price_per_token` y `output_price_per_token`.
+Si se omiten ambas, devuelve el texto sin registrar costo.
+Si se proporciona solo una, lanza `ValueError` antes de enviar la petición.
+
+El registro ocurre una sola vez después del envío exitoso,
+fuera del mecanismo de reintento. Si se agotan los intentos,
+no se registra una estimación para esa consulta.
+Si faltan datos de consumo, se informa el error sin alterar el acumulado.
 
 El cálculo no contempla todos los posibles componentes facturables,
-como tokens de razonamiento o tarifas de caché. No debe interpretarse
-como una factura ni como el cobro efectivo de una petición gratuita.
+como tokens de razonamiento o tarifas de caché.
+Es una estimación parcial, no una factura ni una confirmación
+del cargo efectivo del proveedor.
 
 ## Organización del repositorio
 
-| Ruta                               | Propósito                                           |
-| ---------------------------------- | --------------------------------------------------- |
-| `src/gemini_client.py`             | Preparación, envío y procesamiento de peticiones.   |
-| `src/list_models.py`               | Consulta del catálogo de modelos.                   |
-| `src/compare_models.py`            | Medición comparativa de latencia.                   |
-| `src/evaluate_models.py`           | Pruebas de calidad con casos ficticios.             |
-| `prompts/prompt_bank.py`           | Banco de instrucciones, ejemplos y esquemas.        |
-| `prompts/check_consistency.py`     | Ejecución y validación del banco.                   |
-| `prompts/consistency_results.json` | Registro de resultados obtenidos.                   |
-| `docs/architecture_decision.md`    | Comparación y elección del modelo.                  |
-| `docs/miniapp_architecture.png`    | Diagrama de arquitectura.                           |
-| `docs/evidencias/`                 | Capturas de las verificaciones realizadas.          |
-| `.env.example`                     | Plantilla de configuración sin credenciales reales. |
-| `requirements.txt`                 | Dependencias del entorno.                           |
+| Ruta                               | Propósito                                                          |
+| ---------------------------------- | ------------------------------------------------------------------ |
+| `src/gemini_client.py`             | Preparación, envío y procesamiento de peticiones.                  |
+| `src/list_models.py`               | Consulta del catálogo de modelos.                                  |
+| `src/compare_models.py`            | Medición comparativa de latencia.                                  |
+| `src/evaluate_models.py`           | Pruebas de calidad con casos ficticios.                            |
+| `prompts/prompt_bank.py`           | Banco de instrucciones, ejemplos y esquemas.                       |
+| `prompts/check_consistency.py`     | Ejecución y validación del banco.                                  |
+| `prompts/consistency_results.json` | Registro de resultados obtenidos.                                  |
+| `docs/architecture_decision.md`    | Comparación y elección del modelo.                                 |
+| `docs/miniapp_architecture.png`    | Diagrama de arquitectura.                                          |
+| `docs/evidencias/`                 | Capturas de las verificaciones realizadas.                         |
+| `.env.example`                     | Plantilla de configuración sin credenciales reales.                |
+| `requirements.txt`                 | Dependencias del entorno.                                          |
+| `src/retry_client.py`              | Reintento con backoff exponencial, jitter y demostración simulada. |
+| `src/rate_limit_trial.py`          | Ensayo acotado de diez consultas reales con costo estimado.        |
+| `tests/test_gemini_client.py`      | Pruebas de clasificación HTTP, costos e interfaz pública.          |
+| `tests/test_retry_client.py`       | Pruebas de recuperación, pausas y agotamiento de intentos.         |
+
+## Ejecución del ensayo de consultas consecutivas
+
+Desde la raíz del repositorio, con el entorno virtual activo:
+
+```bash
+python -m src.rate_limit_trial
+```
+
+Realiza hasta diez consultas reales, cada una con hasta tres intentos HTTP.
+Puede generar cargos y se detiene ante el primer error definitivo.
+No garantiza que se alcance un límite de uso.
 
 ## Manejo de errores
 
@@ -298,7 +332,9 @@ confirmado en la facturación del proveedor.
 
 Ejecutar desde la raíz, con el entorno virtual activo:
 
+```bash
 python -m pytest tests/test_gemini_client.py tests/test_retry_client.py -v
+```
 
 Resultado observado: 17 passed in 0.40s.
 
