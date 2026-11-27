@@ -218,3 +218,41 @@ def test_generate_text_propagates_access_error_without_retry(monkeypatch):
     mock_sleep.assert_not_called()
     mock_register.assert_not_called()
     assert gemini_client.session_cost_usd == 0.0
+
+def test_generate_text_passes_system_instruction_to_request(monkeypatch):
+    """La interfaz pública envía la instrucción separada de la pregunta."""
+    monkeypatch.setenv("GEMINI_API_KEY", "fake-test-key")
+
+    question = "Resume el estado de los exámenes."
+    instruction = "Responde en español sin inventar datos."
+
+    data = {
+        "candidates": [
+            {"content": {"parts": [{"text": "Resumen simulado"}]}}
+        ]
+    }
+
+    # Conserva build_request real y reemplaza únicamente el envío.
+    with patch(
+        "src.gemini_client.send_request",
+        return_value=data,
+    ) as mock_send:
+        result = gemini_client.generate_text(
+            question,
+            system_instruction=instruction,
+        )
+
+    assert result == "Resumen simulado"
+    mock_send.assert_called_once()
+
+    _, _, payload = mock_send.call_args.args
+
+    assert payload["systemInstruction"] == {
+        "parts": [{"text": instruction}]
+    }
+    assert payload["contents"] == [
+        {
+            "role": "user",
+            "parts": [{"text": question}],
+        }
+    ]

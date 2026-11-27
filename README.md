@@ -40,7 +40,7 @@ Esta versión implementa la base técnica de integración con Gemini y los avanc
 - Estimación parcial del costo por tokens de entrada y salida, con registro opcional y acumulado por sesión.
 - Registro único de costo después del envío exitoso, fuera del mecanismo de reintento.
 - Ensayo de diez consultas reales consecutivas, sin observar un HTTP 429.
-- Suite de 17 pruebas automatizadas con mocks, sin llamadas reales a la API ni pausas reales.
+- Suite de 18 pruebas automatizadas con mocks, sin llamadas reales a la API ni pausas reales.
 - Comparación de modelos y decisión de arquitectura documentada.
 
 La lectura de reportes, la conciliación automática y el cálculo de cobros
@@ -349,6 +349,7 @@ Cobertura de escenarios:
 - Registro único de costo tras recuperarse de fallos.
 - Ausencia de registro de costo al agotarse los intentos.
 - Conversión del error final y propagación del error de acceso.
+- Transmisión de `system_instruction` desde `generate_text`, separada de la pregunta.
 
 Las pruebas utilizan mocks para el envío HTTP y las pausas,
 tarifas ficticias y un fixture que aísla el acumulado de costos.

@@ -256,6 +256,7 @@ def register_cost(
 def generate_text(
     question,
     *,
+     system_instruction=None,
     input_price_per_token=None,
     output_price_per_token=None,
 ):
@@ -263,7 +264,11 @@ def generate_text(
     if (input_price_per_token is None) != (output_price_per_token is None):
         raise ValueError("Debes proporcionar ambas tarifas por token.")
 
-    url, headers, payload = build_request(question)
+    # Transmite la instrucción opcional al constructor de la petición.
+    url, headers, payload = build_request(
+        question,
+        system_instruction=system_instruction,
+    )
 
     try:
         # Solo se repite el envío; el registro queda fuera del reintento.
