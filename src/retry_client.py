@@ -36,7 +36,8 @@ def with_retry(
 
             print(
                 f"Intento {attempt} de {attempts} falló por límite "
-                f"de uso. Reintentando en {delay_with_jitter:.1f}s..."
+                f"de uso o error del servidor. "
+                f"Reintentando en {delay_with_jitter:.1f}s..."
             )
             time.sleep(delay_with_jitter)
 

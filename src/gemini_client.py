@@ -120,10 +120,10 @@ def send_request(url, headers, payload):
                 "Revisa la clave y el contenido enviado."
             )
         elif status_code >= 500:
-            message = (
-                f"Gemini no pudo atender la petición (HTTP {status_code}). "
-                "Intenta nuevamente más tarde."
-            )
+            # En esta unidad, los errores del servidor también se reintentan.
+            raise TimeoutError(
+                f"Gemini no pudo atender la petición (HTTP {status_code})."
+            ) from None
         else:
             message = f"La petición falló con el código HTTP {status_code}."
 
@@ -271,11 +271,10 @@ def generate_text(
             lambda: send_request(url, headers, payload)
         )
     except TimeoutError:
-        raise RuntimeError(
-            "Se alcanzó un límite de uso o cuota de Gemini "
-            "y se agotaron los tres intentos. Intenta más tarde."
+             raise RuntimeError(
+            "Gemini no pudo completar la petición tras tres intentos "
+            "por límite de uso o error del servidor. Intenta más tarde."
         ) from None
-
     # Registra el consumo informado aunque luego falle la extracción.
     if input_price_per_token is not None:
         register_cost(

@@ -293,3 +293,32 @@ registros de costo ante fallos se comprobaron mediante simulaciones.
 Este ensayo no demuestra recuperación ante un HTTP 429 real.
 El costo informado es una estimación parcial, no un cargo
 confirmado en la facturación del proveedor.
+
+## Pruebas unitarias del cliente modular — M2
+
+Ejecutar desde la raíz, con el entorno virtual activo:
+
+python -m pytest tests/test_gemini_client.py tests/test_retry_client.py -v
+
+Resultado observado: 17 passed in 0.40s.
+
+Cobertura de escenarios:
+
+- Clasificación HTTP: 401, 403, 429, 400, 500 y 503.
+- Respuesta JSON exitosa.
+- Recuperación mediante reintentos y espera exponencial con jitter.
+- Propagación inmediata de errores no reintentables.
+- Agotamiento de intentos.
+- Cálculo y acumulación del costo estimado.
+- Registro único de costo tras recuperarse de fallos.
+- Ausencia de registro de costo al agotarse los intentos.
+- Conversión del error final y propagación del error de acceso.
+
+Las pruebas utilizan mocks para el envío HTTP y las pausas,
+tarifas ficticias y un fixture que aísla el acumulado de costos.
+No requieren una API key real.
+
+En esta versión, HTTP 429 y HTTP 500+ producen TimeoutError
+como convención interna para activar el reintento.
+
+Estas pruebas no demuestran recuperación ante un HTTP 429 real.
